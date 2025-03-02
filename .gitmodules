@@ -1,0 +1,6 @@
+[submodule "account"]
+	path = account
+	url = https://github.com/Vadim-12/aas-account.git
+[submodule "auth"]
+	path = auth
+	url = https://github.com/Vadim-12/aas-auth.git
