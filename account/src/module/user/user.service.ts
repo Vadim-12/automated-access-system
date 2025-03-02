@@ -1,11 +1,16 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as crypto from 'node:crypto';
-import * as argon from 'argon2';
+import * as argon2 from 'argon2';
 import { UserRepository } from './user.repository';
 import GetUserFilterDto from './dto/get-users-filter.dto';
 import { UserDto } from './dto/user.dto';
+import { SignInDto } from './dto/sign-in.dto';
 
 @Injectable()
 export class UserService {
@@ -22,7 +27,7 @@ export class UserService {
     }
 
     const salt = crypto.randomBytes(32);
-    const hash = await argon.hash(createUserDto.password, { salt });
+    const hash = await argon2.hash(createUserDto.password, { salt });
 
     await this.userRepository.createUser({
       passwordHash: hash,
@@ -50,5 +55,13 @@ export class UserService {
 
   remove(id: string) {
     return this.userRepository.deleteUser(id);
+  }
+
+  async verification({ login, password }: SignInDto): Promise<boolean> {
+    const user = await this.userRepository.findByLogin(login);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return argon2.verify(user.passwordHash, password);
   }
 }
